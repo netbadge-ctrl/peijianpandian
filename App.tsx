@@ -17,7 +17,8 @@ import {
   Check,
   ChevronLeft,
   Filter,
-  MoreVertical
+  MoreVertical,
+  MapPin
 } from 'lucide-react';
 import InventoryStats from './components/InventoryStats';
 import Scanner from './components/Scanner';
@@ -26,10 +27,17 @@ import { askAssistant } from './services/geminiService';
 
 // --- Mock Initial Data ---
 const INITIAL_DATA: InventoryItem[] = [
-  { id: '1', sn: 'CPU-XG-001', name: 'Intel Xeon Gold 6248R', category: PartCategory.CPU, model: '6248R', quantity: 4, status: PartStatus.NEW, location: 'A-01', lastUpdated: '2023-10-26' },
-  { id: '2', sn: 'RAM-SS-002', name: 'Samsung 32GB DDR4', category: PartCategory.RAM, model: 'M393A4K40CB2', quantity: 24, status: PartStatus.NEW, location: 'A-02', lastUpdated: '2023-11-01' },
-  { id: '3', sn: 'DSK-SG-003', name: 'Seagate Exos 16TB', category: PartCategory.DISK, model: 'ST16000NM001G', quantity: 8, status: PartStatus.USED, location: 'B-05', lastUpdated: '2023-10-15' },
-  { id: '4', sn: 'NIC-CS-004', name: 'Cisco SFP+ 10G SR', category: PartCategory.NIC, model: 'SFP-10G-SR', quantity: 12, status: PartStatus.NEW, location: 'C-03', lastUpdated: '2023-11-05' },
+  { id: '1', sn: 'CPU-XG-001', name: 'Intel Xeon Gold 6248R', category: PartCategory.CPU, model: '6248R', quantity: 4, status: PartStatus.NEW, location: '核心机房 A (Core-A)', lastUpdated: '2023-10-26' },
+  { id: '2', sn: 'RAM-SS-002', name: 'Samsung 32GB DDR4', category: PartCategory.RAM, model: 'M393A4K40CB2', quantity: 24, status: PartStatus.NEW, location: '核心机房 A (Core-A)', lastUpdated: '2023-11-01' },
+  { id: '3', sn: 'DSK-SG-003', name: 'Seagate Exos 16TB', category: PartCategory.DISK, model: 'ST16000NM001G', quantity: 8, status: PartStatus.USED, location: '备件库房 (Warehouse)', lastUpdated: '2023-10-15' },
+  { id: '4', sn: 'NIC-CS-004', name: 'Cisco SFP+ 10G SR', category: PartCategory.NIC, model: 'SFP-10G-SR', quantity: 12, status: PartStatus.NEW, location: '汇聚机房 C (Agg-C)', lastUpdated: '2023-11-05' },
+];
+
+const ROOM_OPTIONS = [
+  { id: '1', name: '核心机房 A (Core-A)' },
+  { id: '2', name: '核心机房 B (Core-B)' },
+  { id: '3', name: '汇聚机房 C (Agg-C)' },
+  { id: '4', name: '备件库房 (Warehouse)' },
 ];
 
 const App: React.FC = () => {
@@ -39,6 +47,10 @@ const App: React.FC = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Room Selection State
+  const [showRoomSelector, setShowRoomSelector] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState<string>('');
   
   // Chat State
   const [chatInput, setChatInput] = useState('');
@@ -88,7 +100,11 @@ const App: React.FC = () => {
       setFormData(existing);
       setShowAddModal(true);
     } else {
-      setFormData({ ...emptyItem, ...scannedData });
+      setFormData({ 
+        ...emptyItem, 
+        ...scannedData,
+        location: currentRoom || '' // Pre-fill location with selected room
+      });
       setEditingItem(null);
       setShowAddModal(true);
     }
@@ -179,7 +195,7 @@ const App: React.FC = () => {
       {/* Floating Action Button for Scan */}
       <div className="relative -top-8">
         <button 
-          onClick={() => setShowScanner(true)}
+          onClick={() => setShowRoomSelector(true)}
           className="bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg shadow-indigo-300 hover:bg-indigo-700 transition-transform active:scale-95 flex items-center justify-center border-4 border-slate-50"
         >
           <ScanBarcode className="w-7 h-7" />
@@ -203,6 +219,58 @@ const App: React.FC = () => {
       </button>
     </div>
   );
+
+  const renderRoomSelectionModal = () => {
+    if (!showRoomSelector) return null;
+    return (
+      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col justify-end sm:justify-center animate-fade-in" onClick={() => setShowRoomSelector(false)}>
+        <div 
+          className="bg-white w-full sm:w-[400px] sm:mx-auto sm:rounded-2xl rounded-t-3xl p-6 pb-10 shadow-2xl animate-slide-up" 
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center mb-6">
+            <div>
+               <h3 className="text-xl font-bold text-slate-900">选择当前机房</h3>
+               <p className="text-xs text-slate-500 mt-1">请确认所在位置以开始盘点</p>
+            </div>
+            <button onClick={() => setShowRoomSelector(false)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-slate-500"/></button>
+          </div>
+          
+          <div className="space-y-3">
+             {ROOM_OPTIONS.map(room => (
+               <button
+                 key={room.id}
+                 onClick={() => {
+                   setCurrentRoom(room.name);
+                   setShowRoomSelector(false);
+                   setShowScanner(true);
+                 }}
+                 className={`w-full p-4 flex items-center justify-between rounded-xl border transition-all active:scale-[0.98] ${
+                   currentRoom === room.name 
+                     ? 'bg-indigo-50 border-indigo-500 shadow-sm' 
+                     : 'bg-white border-slate-100 hover:border-slate-300'
+                 }`}
+               >
+                 <div className="flex items-center gap-3">
+                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentRoom === room.name ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                      <MapPin className="w-5 h-5" />
+                   </div>
+                   <span className={`font-bold text-base ${currentRoom === room.name ? 'text-indigo-900' : 'text-slate-600'}`}>
+                      {room.name}
+                   </span>
+                 </div>
+                 {currentRoom === room.name && (
+                   <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 text-white" />
+                   </div>
+                 )}
+               </button>
+             ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderFullScreenModal = () => {
     if (!showAddModal) return null;
@@ -344,6 +412,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-24">
       
       {renderMobileNav()}
+      {renderRoomSelectionModal()}
       {showScanner && <Scanner items={items} onScanComplete={handleScanComplete} onClose={() => setShowScanner(false)} />}
       {renderFullScreenModal()}
 

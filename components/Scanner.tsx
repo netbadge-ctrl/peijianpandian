@@ -189,7 +189,21 @@ const Scanner: React.FC<ScannerProps> = ({ items, onScanComplete, onClose }) => 
       <span className="font-medium text-lg text-white drop-shadow-md tracking-wide">
         {mode === 'barcode' ? '扫码查重' : '拍照补录'}
       </span>
-      <div className="w-10" /> {/* Spacer */}
+      
+      {mode === 'barcode' ? (
+        <button 
+          onClick={() => {
+             setMode('ai_label');
+             setSearchStatus('idle');
+          }}
+          className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/10 px-3 py-2 rounded-xl active:bg-white/20 transition-all shadow-lg"
+        >
+          <Camera className="w-4 h-4 text-indigo-300" />
+          <span className="text-xs font-bold text-white">识别Model</span>
+        </button>
+      ) : (
+        <div className="w-10" /> 
+      )}
     </div>
   );
 

@@ -1,5 +1,5 @@
 {
-  "name": "服务器备件管理",
+  "name": "服务器备件管理（OMS）",
   "description": "A smart inventory management tool for IDC server parts, featuring AI-powered component recognition and stock analysis.",
   "requestFramePermissions": [
     "camera"
