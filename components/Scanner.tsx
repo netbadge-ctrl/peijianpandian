@@ -4,7 +4,7 @@ import {
   Loader2, X, ChevronLeft, Camera, CheckCircle2, 
   AlertTriangle, Search, ArrowRight, Edit3, Check, 
   ScanLine, Keyboard, Type, Image as ImageIcon, Layers,
-  ChevronDown
+  ChevronDown, Info
 } from 'lucide-react';
 import { analyzeComponentImage } from '../services/geminiService';
 import { InventoryItem, PartCategory, PartStatus } from '../types';
@@ -355,18 +355,47 @@ const Scanner: React.FC<ScannerProps> = ({ items, onScanComplete, onClose }) => 
 
            {/* 1. Initial Empty State */}
            {!previewUrl && (
-             <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-8">
+             <div className="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-sm mx-auto overflow-y-auto">
                 <div 
                    onClick={triggerFileSelect}
-                   className="w-64 h-64 rounded-full bg-slate-800 border-4 border-slate-700 flex items-center justify-center cursor-pointer active:scale-95 transition-transform shadow-[0_0_40px_rgba(0,0,0,0.5)]"
+                   className="w-40 h-40 rounded-full bg-slate-900 border-4 border-slate-800 flex items-center justify-center cursor-pointer active:scale-95 transition-transform shadow-[0_0_50px_rgba(79,70,229,0.15)] mb-8 shrink-0 hover:border-indigo-500/30"
                 >
-                   <Camera className="w-24 h-24 text-indigo-500" />
+                   <Camera className="w-16 h-16 text-indigo-500" />
                 </div>
-                <div className="text-center space-y-2">
-                   <h2 className="text-2xl font-bold">点击拍照</h2>
-                   <p className="text-slate-400 text-sm">对准配件标签，AI 自动提取 SN 和型号</p>
+                
+                <div className="text-center space-y-1 mb-8">
+                   <h2 className="text-xl font-bold text-white tracking-tight">点击拍摄配件照片</h2>
+                   <p className="text-slate-500 text-xs">AI 自动识别 SN、型号与规格参数</p>
                 </div>
-                <button onClick={() => setMode('barcode')} className="text-slate-500 underline mt-8">返回扫码模式</button>
+
+                {/* Instructions Box */}
+                <div className="w-full bg-slate-900/50 border border-indigo-500/20 rounded-2xl p-5 backdrop-blur-sm relative overflow-hidden">
+                   <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                   <div className="flex items-center gap-2 mb-4">
+                      <div className="w-6 h-6 rounded-full bg-indigo-500/10 flex items-center justify-center">
+                        <Info className="w-3.5 h-3.5 text-indigo-400" />
+                      </div>
+                      <h3 className="text-sm font-bold text-indigo-200">拍摄规范说明</h3>
+                   </div>
+                   <ul className="space-y-3">
+                      <li className="flex items-start gap-3">
+                         <span className="text-xs font-bold text-slate-500 mt-0.5">01</span>
+                         <span className="text-xs text-slate-300 leading-relaxed">拍摄配件时，配件与手机水平，保证照片无歪斜；</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                         <span className="text-xs font-bold text-slate-500 mt-0.5">02</span>
+                         <span className="text-xs text-slate-300 leading-relaxed">拍摄时保证光照充足且清晰，字迹可辨认；</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                         <span className="text-xs font-bold text-slate-500 mt-0.5">03</span>
+                         <span className="text-xs text-slate-300 leading-relaxed">配件有码标签拍摄全，无遗漏。</span>
+                      </li>
+                   </ul>
+                </div>
+
+                <button onClick={() => setMode('barcode')} className="text-slate-600 text-xs mt-8 hover:text-slate-400 transition-colors py-4">
+                  返回扫码查重模式
+                </button>
              </div>
            )}
 
